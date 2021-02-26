@@ -7,10 +7,14 @@ class MoviesController < ApplicationController
   end
 
   def index
-    # debugger
-    
+  # debugger
+    prev = request.referer
+    if (!prev.include?("aws") || !prev.include?("heroku"))
+      session.clear
+    end
     @all_ratings = Movie.all_ratings
     @sort = params[:sort_by]
+    # redirect = false
     
     # if params[:ratings].nil?
     #   @ratings_to_show = @all_ratings
@@ -20,25 +24,68 @@ class MoviesController < ApplicationController
     #   @ratings_to_show = params[:ratings].keys
     #   @movies = Movie.with_ratings(@ratings_to_show)
     # end
+   
+    
     if params[:ratings].nil?
-      @ratings_to_show = @all_ratings
-      
+      if params[:commit]=="Refresh"
+         @ratings_to_show = @all_ratings
+      else 
+        if !session[:ratings].nil?
+          if session[:ratings].is_a? Array
+            @ratings_to_show = session[:ratings]
+          else
+             @ratings_to_show = session[:ratings].keys
+          end
+        else
+          @ratings_to_show = @all_ratings
+        end
+      end
+      if !session[:sort_by].nil?
+        @sort= session[:sort_by]
+      end
     else
       if params[:ratings].is_a? Array
+        
         @ratings_to_show = params[:ratings]
+        session[:ratings]= params[:ratings]
+        session[:sort_by] = params[:sort_by]
+        # if params[:sort_by].nil?
+          @sort= session[:sort_by]
+        # else
+          # session[:sort_by] = params[:sort_by]
+        # end
+        # if !session[:sort_by].nil?
+        #   @sort= session[:sort_by]
+        # end
       else
+        # puts hello
         @ratings_to_show = params[:ratings].keys
+        session[:ratings]= params[:ratings]
+        session[:sort_by] = params[:sort_by]
+        @sort= session[:sort_by]
+        # if params[:sort_by].nil?
+          # @sort= session[:sort_by]
+        # else
+          # session[:sort_by] = params[:sort_by]
+        # end
       end
     end
     @movies = Movie.with_ratings(@ratings_to_show, @sort)
-    session[:sort_by] = @sort
+    
+   
+      
+      
+    @movies = Movie.with_ratings(@ratings_to_show, @sort)
+    
+    
     
       
-    # 
+  
       
     
     
     # @movies = Movie.all
+    
   end
 
   def new
