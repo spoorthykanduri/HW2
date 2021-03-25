@@ -9,7 +9,7 @@ class MoviesController < ApplicationController
   def index
   # debugger
     prev = request.referer
-    if (!prev.include?("aws") || !prev.include?("heroku"))
+    if (prev.nil? || !prev.include?("aws") || !prev.include?("heroku"))
       session.clear
     end
     @all_ratings = Movie.all_ratings
